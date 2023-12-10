@@ -21,14 +21,16 @@
 #include "wagner.h"
 #include "wpe_webkit.h"
 
-struct sample_keyboard {
+struct sample_keyboard
+{
 	struct wagner_state *wagner;
 	struct wlr_input_device *device;
 	struct wl_listener key;
 	struct wl_listener destroy;
 };
 
-static void output_frame_notify(struct wl_listener *listener, void *data) {
+static void output_frame_notify(struct wl_listener *listener, void *data)
+{
 	struct wagner_output *wagner_output =
 		wl_container_of(listener, wagner_output, frame);
 	struct wagner_state *wagner = wagner_output->wagner;
@@ -38,13 +40,14 @@ static void output_frame_notify(struct wl_listener *listener, void *data) {
 	clock_gettime(CLOCK_MONOTONIC, &now);
 
 	long ms = (now.tv_sec - wagner->last_frame.tv_sec) * 1000 +
-		(now.tv_nsec - wagner->last_frame.tv_nsec) / 1000000;
+			  (now.tv_nsec - wagner->last_frame.tv_nsec) / 1000000;
 	int inc = (wagner->dec + 1) % 3;
 
 	wagner->color[inc] += ms / 2000.0f;
 	wagner->color[wagner->dec] -= ms / 2000.0f;
 
-	if (wagner->color[wagner->dec] < 0.0f) {
+	if (wagner->color[wagner->dec] < 0.0f)
+	{
 		wagner->color[inc] = 1.0f;
 		wagner->color[wagner->dec] = 0.0f;
 		wagner->dec = inc;
@@ -68,16 +71,21 @@ static void output_frame_notify(struct wl_listener *listener, void *data) {
 	wagner->last_frame = now;
 }
 
-static void output_remove_notify(struct wl_listener *listener, void *data) {
+static void output_remove_notify(struct wl_listener *listener, void *data)
+{
+	wlr_log(WLR_DEBUG, "Output removed");
+
 	struct wagner_output *wagner_output =
 		wl_container_of(listener, wagner_output, destroy);
-	wlr_log(WLR_DEBUG, "Output removed");
 	wl_list_remove(&wagner_output->frame.link);
 	wl_list_remove(&wagner_output->destroy.link);
 	free(wagner_output);
 }
 
-static void new_output_notify(struct wl_listener *listener, void *data) {
+static void new_output_notify(struct wl_listener *listener, void *data)
+{
+	wlr_log(WLR_DEBUG, "Output added");
+
 	struct wlr_output *output = data;
 	struct wagner_state *wagner =
 		wl_container_of(listener, wagner, new_output);
@@ -89,42 +97,52 @@ static void new_output_notify(struct wl_listener *listener, void *data) {
 
 	wg_initialize_wpe_webkit(egl_renderer->display);
 	unsigned wpe_view_texture = wg_create_wpe_view_texture(output->width, output->height);
+	GLuint program;
+	GLint u_texture;
+	wg_create_shader_program(&program, &u_texture);
 
-	struct wagner_output *wagner_output =
-		calloc(1, sizeof(struct wagner_output));
+	struct wagner_output *wagner_output = calloc(1, sizeof(struct wagner_output));
+
 	wagner_output->output = output;
 	wagner_output->wagner = wagner;
 	wagner_output->wpe_view_texture = wpe_view_texture;
+	wagner_output->wpe_view_shader_program = program;
+	wagner_output->wpe_view_u_texture = u_texture;
 	wl_signal_add(&output->events.frame, &wagner_output->frame);
 	wagner_output->frame.notify = output_frame_notify;
 	wl_signal_add(&output->events.destroy, &wagner_output->destroy);
 	wagner_output->destroy.notify = output_remove_notify;
 
 	struct wlr_output_mode *mode = wlr_output_preferred_mode(output);
-	if (mode != NULL) {
+	if (mode != NULL)
+	{
 		wlr_output_set_mode(output, mode);
 	}
 
 	wlr_output_commit(wagner_output->output);
 }
 
-static void keyboard_key_notify(struct wl_listener *listener, void *data) {
+static void keyboard_key_notify(struct wl_listener *listener, void *data)
+{
 	struct sample_keyboard *keyboard = wl_container_of(listener, keyboard, key);
 	struct wagner_state *wagner = keyboard->wagner;
 	struct wlr_event_keyboard_key *event = data;
 	uint32_t keycode = event->keycode + 8;
 	const xkb_keysym_t *syms;
 	int nsyms = xkb_state_key_get_syms(keyboard->device->keyboard->xkb_state,
-			keycode, &syms);
-	for (int i = 0; i < nsyms; i++) {
+									   keycode, &syms);
+	for (int i = 0; i < nsyms; i++)
+	{
 		xkb_keysym_t sym = syms[i];
-		if (sym == XKB_KEY_Escape) {
+		if (sym == XKB_KEY_Escape)
+		{
 			wl_display_terminate(wagner->display);
 		}
 	}
 }
 
-static void keyboard_destroy_notify(struct wl_listener *listener, void *data) {
+static void keyboard_destroy_notify(struct wl_listener *listener, void *data)
+{
 	struct sample_keyboard *keyboard =
 		wl_container_of(listener, keyboard, destroy);
 	wl_list_remove(&keyboard->destroy.link);
@@ -132,10 +150,12 @@ static void keyboard_destroy_notify(struct wl_listener *listener, void *data) {
 	free(keyboard);
 }
 
-static void new_input_notify(struct wl_listener *listener, void *data) {
+static void new_input_notify(struct wl_listener *listener, void *data)
+{
 	struct wlr_input_device *device = data;
 	struct wagner_state *wagner = wl_container_of(listener, wagner, new_input);
-	switch (device->type) {
+	switch (device->type)
+	{
 	case WLR_INPUT_DEVICE_KEYBOARD:;
 		struct sample_keyboard *keyboard =
 			calloc(1, sizeof(struct sample_keyboard));
@@ -146,13 +166,15 @@ static void new_input_notify(struct wl_listener *listener, void *data) {
 		wl_signal_add(&device->keyboard->events.key, &keyboard->key);
 		keyboard->key.notify = keyboard_key_notify;
 		struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-		if (!context) {
+		if (!context)
+		{
 			wlr_log(WLR_ERROR, "Failed to create XKB context");
 			exit(1);
 		}
 		struct xkb_keymap *keymap = xkb_keymap_new_from_names(context, NULL,
-			XKB_KEYMAP_COMPILE_NO_FLAGS);
-		if (!keymap) {
+															  XKB_KEYMAP_COMPILE_NO_FLAGS);
+		if (!keymap)
+		{
 			wlr_log(WLR_ERROR, "Failed to create XKB keymap");
 			exit(1);
 		}
@@ -165,18 +187,19 @@ static void new_input_notify(struct wl_listener *listener, void *data) {
 	}
 }
 
-int main(void) {
+int main(void)
+{
 	wlr_log_init(WLR_DEBUG, NULL);
 	struct wl_display *display = wl_display_create();
 
 	struct wagner_state state = {
-		.color = { 1.0, 0.0, 0.0, 1.0 },
+		.color = {1.0, 0.0, 0.0, 1.0},
 		.dec = 0,
-		.last_frame = { 0 },
-		.display = display
-	};
+		.last_frame = {0},
+		.display = display};
 	struct wlr_backend *backend = wlr_backend_autocreate(display);
-	if (!backend) {
+	if (!backend)
+	{
 		exit(1);
 	}
 
@@ -195,20 +218,22 @@ int main(void) {
 	state.new_input.notify = new_input_notify;
 	clock_gettime(CLOCK_MONOTONIC, &state.last_frame);
 
-	if (!wlr_backend_start(backend)) {
+	if (!wlr_backend_start(backend))
+	{
 		wlr_log(WLR_ERROR, "Failed to start backend");
 		wlr_backend_destroy(backend);
 		exit(1);
 	}
 
-    const char *socket = wl_display_add_socket_auto(display);
-    if (!socket) {
-        fprintf(stderr, "Unable to add socket to Wayland display.\n");
-        return 1;
-    }
-    fprintf(stderr, "Running Wayland display on %s\n", socket);
+	const char *socket = wl_display_add_socket_auto(display);
+	if (!socket)
+	{
+		fprintf(stderr, "Unable to add socket to Wayland display.\n");
+		return 1;
+	}
+	fprintf(stderr, "Running Wayland display on %s\n", socket);
 
 	wg_main_loop_run(display);
-	
+
 	wl_display_destroy(display);
 }

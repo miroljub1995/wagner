@@ -19,6 +19,8 @@ struct wagner_output {
 	struct wlr_output *output;
 	struct wl_listener frame;
 	struct wl_listener destroy;
-	unsigned wpe_view_texture;
+	unsigned int wpe_view_texture;
+	unsigned int wpe_view_shader_program;
+	int wpe_view_u_texture;
 };
 #endif
