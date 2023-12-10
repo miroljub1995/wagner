@@ -1,6 +1,7 @@
 #include <wpe/fdo.h>
 #include <wpe/fdo-egl.h>
 #include <wpe/webkit.h>
+
 #include "wpe_webkit.h"
 
 struct view {
@@ -30,6 +31,22 @@ static struct wpe_view_backend_exportable_fdo_egl_client exportableClient = {
     // padding
     NULL, NULL, NULL
 };
+
+
+GLuint wg_create_wpe_view_texture(GLsizei width, GLsizei height) {
+	GLuint texture = 0;
+
+	glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+	return texture;
+}
 
 void wg_initialize_wpe_webkit(EGLDisplay display) {
     g_print("WPE WebKit %u.%u.%u",

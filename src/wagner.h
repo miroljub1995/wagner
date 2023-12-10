@@ -1,5 +1,5 @@
-#ifndef WAGNER_H
-#define WAGNER_H
+#ifndef WG_WAGNER_H
+#define WG_WAGNER_H
 
 #include <wlr/backend.h>
 
@@ -19,5 +19,6 @@ struct wagner_output {
 	struct wlr_output *output;
 	struct wl_listener frame;
 	struct wl_listener destroy;
+	unsigned wpe_view_texture;
 };
 #endif

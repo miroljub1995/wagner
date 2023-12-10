@@ -86,12 +86,15 @@ static void new_output_notify(struct wl_listener *listener, void *data) {
 
 	struct wlr_egl *egl_renderer = wlr_gles2_renderer_get_egl(wagner->renderer);
 	assert(egl_renderer > 0);
+
 	wg_initialize_wpe_webkit(egl_renderer->display);
+	unsigned wpe_view_texture = wg_create_wpe_view_texture(output->width, output->height);
 
 	struct wagner_output *wagner_output =
 		calloc(1, sizeof(struct wagner_output));
 	wagner_output->output = output;
 	wagner_output->wagner = wagner;
+	wagner_output->wpe_view_texture = wpe_view_texture;
 	wl_signal_add(&output->events.frame, &wagner_output->frame);
 	wagner_output->frame.notify = output_frame_notify;
 	wl_signal_add(&output->events.destroy, &wagner_output->destroy);
