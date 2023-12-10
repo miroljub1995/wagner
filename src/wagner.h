@@ -2,6 +2,7 @@
 #define WG_WAGNER_H
 
 #include <wlr/backend.h>
+#include <wpe/fdo-egl.h>
 
 struct wagner_state {
 	struct wl_display *display;
@@ -19,8 +20,12 @@ struct wagner_output {
 	struct wlr_output *output;
 	struct wl_listener frame;
 	struct wl_listener destroy;
+
+    struct wpe_view_backend_exportable_fdo *wpe_view_backend_exportable;
+	struct wpe_view_backend *wpe_view_backend;
 	unsigned int wpe_view_texture;
 	unsigned int wpe_view_shader_program;
 	int wpe_view_u_texture;
+	struct wpe_fdo_egl_exported_image *wpe_image;
 };
 #endif

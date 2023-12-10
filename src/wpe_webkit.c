@@ -4,20 +4,17 @@
 
 #include "wpe_webkit.h"
 
-struct view
-{
-    struct wpe_view_backend_exportable_fdo *exportable;
-};
-
-static struct view exportable_view = {
-    .exportable = NULL};
-
 void export_fdo_egl_image(void *data, struct wpe_fdo_egl_exported_image *image)
 {
     g_print("export_fdo_egl_image\n");
 
-    wpe_view_backend_exportable_fdo_dispatch_frame_complete(exportable_view.exportable);
-    wpe_view_backend_exportable_fdo_egl_dispatch_release_exported_image(exportable_view.exportable, image);
+    struct wagner_output *wagner_output = data;
+    if (wagner_output->wpe_image)
+    {
+        wpe_view_backend_exportable_fdo_egl_dispatch_release_exported_image(wagner_output->wpe_view_backend_exportable, wagner_output->wpe_image);
+    }
+
+    wagner_output->wpe_image = image;
 }
 
 void destry_view_backend(gpointer data)
@@ -86,7 +83,12 @@ void wg_create_shader_program(GLuint *program, GLint *u_texture)
     *u_texture = glGetUniformLocation(*program, "u_texture");
 }
 
-void wg_initialize_wpe_webkit(EGLDisplay display)
+void wg_wpe_dispatch_frame_complete(struct wagner_output *wagner_output)
+{
+    wpe_view_backend_exportable_fdo_dispatch_frame_complete(wagner_output->wpe_view_backend_exportable);
+}
+
+void wg_initialize_wpe_webkit(struct wagner_output *wagner_output, EGLDisplay display)
 {
     g_print("WPE WebKit %u.%u.%u",
             webkit_get_major_version(),
@@ -109,12 +111,9 @@ void wg_initialize_wpe_webkit(EGLDisplay display)
         "enable-encrypted-media", TRUE,
         NULL);
 
-    struct wpe_view_backend_exportable_fdo *exportable = wpe_view_backend_exportable_fdo_egl_create(&exportableClient, &exportable_view, 500, 500);
-    exportable_view.exportable = exportable;
-
-    struct wpe_view_backend *view_backend = wpe_view_backend_exportable_fdo_get_view_backend(exportable);
-
-    WebKitWebViewBackend *webkit_view_backend = webkit_web_view_backend_new(view_backend, destry_view_backend, NULL);
+    wagner_output->wpe_view_backend_exportable = wpe_view_backend_exportable_fdo_egl_create(&exportableClient, wagner_output, 500, 500);
+    wagner_output->wpe_view_backend = wpe_view_backend_exportable_fdo_get_view_backend(wagner_output->wpe_view_backend_exportable);
+    WebKitWebViewBackend *webkit_view_backend = webkit_web_view_backend_new(wagner_output->wpe_view_backend, destry_view_backend, NULL);
 
     WebKitWebView *webView = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                                                           "backend", webkit_view_backend,
@@ -126,5 +125,5 @@ void wg_initialize_wpe_webkit(EGLDisplay display)
     g_object_unref(settings);
 
     webkit_web_view_load_uri(webView, "https://wpewebkit.org");
-    wpe_view_backend_add_activity_state(view_backend, wpe_view_activity_state_visible | wpe_view_activity_state_focused | wpe_view_activity_state_in_window);
+    wpe_view_backend_add_activity_state(wagner_output->wpe_view_backend, wpe_view_activity_state_visible | wpe_view_activity_state_focused | wpe_view_activity_state_in_window);
 }

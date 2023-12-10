@@ -31,8 +31,7 @@ struct sample_keyboard
 
 static void output_frame_notify(struct wl_listener *listener, void *data)
 {
-	struct wagner_output *wagner_output =
-		wl_container_of(listener, wagner_output, frame);
+	struct wagner_output *wagner_output = wl_container_of(listener, wagner_output, frame);
 	struct wagner_state *wagner = wagner_output->wagner;
 	struct wlr_output *wlr_output = wagner_output->output;
 
@@ -69,6 +68,8 @@ static void output_frame_notify(struct wl_listener *listener, void *data)
 
 	wlr_output_commit(wlr_output);
 	wagner->last_frame = now;
+
+	wg_wpe_dispatch_frame_complete(wagner_output);
 }
 
 static void output_remove_notify(struct wl_listener *listener, void *data)
@@ -95,19 +96,18 @@ static void new_output_notify(struct wl_listener *listener, void *data)
 	struct wlr_egl *egl_renderer = wlr_gles2_renderer_get_egl(wagner->renderer);
 	assert(egl_renderer > 0);
 
-	wg_initialize_wpe_webkit(egl_renderer->display);
-	unsigned wpe_view_texture = wg_create_wpe_view_texture(output->width, output->height);
-	GLuint program;
-	GLint u_texture;
-	wg_create_shader_program(&program, &u_texture);
-
 	struct wagner_output *wagner_output = calloc(1, sizeof(struct wagner_output));
+	wagner_output->wpe_view_backend = NULL;
+	wagner_output->wpe_view_backend_exportable = NULL;
+	wagner_output->wpe_image = NULL;
 
 	wagner_output->output = output;
 	wagner_output->wagner = wagner;
-	wagner_output->wpe_view_texture = wpe_view_texture;
-	wagner_output->wpe_view_shader_program = program;
-	wagner_output->wpe_view_u_texture = u_texture;
+
+	wg_initialize_wpe_webkit(wagner_output, egl_renderer->display);
+	wagner_output->wpe_view_texture = wg_create_wpe_view_texture(output->width, output->height);
+	wg_create_shader_program(&wagner_output->wpe_view_shader_program, &wagner_output->wpe_view_u_texture);
+
 	wl_signal_add(&output->events.frame, &wagner_output->frame);
 	wagner_output->frame.notify = output_frame_notify;
 	wl_signal_add(&output->events.destroy, &wagner_output->destroy);
