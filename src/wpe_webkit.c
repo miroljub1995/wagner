@@ -111,7 +111,7 @@ void wg_initialize_wpe_webkit(struct wagner_output *wagner_output, EGLDisplay di
         "enable-encrypted-media", TRUE,
         NULL);
 
-    wagner_output->wpe_view_backend_exportable = wpe_view_backend_exportable_fdo_egl_create(&exportableClient, wagner_output, 500, 500);
+    wagner_output->wpe_view_backend_exportable = wpe_view_backend_exportable_fdo_egl_create(&exportableClient, wagner_output, wagner_output->output->width, wagner_output->output->height);
     wagner_output->wpe_view_backend = wpe_view_backend_exportable_fdo_get_view_backend(wagner_output->wpe_view_backend_exportable);
     WebKitWebViewBackend *webkit_view_backend = webkit_web_view_backend_new(wagner_output->wpe_view_backend, destry_view_backend, NULL);
 
@@ -124,6 +124,8 @@ void wg_initialize_wpe_webkit(struct wagner_output *wagner_output, EGLDisplay di
                                                           NULL));
     g_object_unref(settings);
 
-    webkit_web_view_load_uri(webView, "https://wpewebkit.org");
+    // webkit_web_view_load_uri(webView, "https://wpewebkit.org");
+    // webkit_web_view_load_uri(webView, "https://mydesigns.io");
+    webkit_web_view_load_uri(webView, "https://www.google.com");
     wpe_view_backend_add_activity_state(wagner_output->wpe_view_backend, wpe_view_activity_state_visible | wpe_view_activity_state_focused | wpe_view_activity_state_in_window);
 }

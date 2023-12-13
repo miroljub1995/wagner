@@ -1,7 +1,7 @@
 #ifndef WG_WAGNER_H
 #define WG_WAGNER_H
 
-#include <wlr/backend.h>
+#include <wlr/types/wlr_output.h>
 #include <wpe/fdo-egl.h>
 
 struct wagner_state {

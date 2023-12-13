@@ -21,6 +21,8 @@
 #include "wagner.h"
 #include "wpe_webkit.h"
 
+typedef void (*glEGLImageTargetTexture2DOESProc)(GLenum target, void *image);
+
 struct sample_keyboard
 {
 	struct wagner_state *wagner;
@@ -64,12 +66,51 @@ static void output_frame_notify(struct wl_listener *listener, void *data)
 	glClearColor(wagner->color[0], wagner->color[1], wagner->color[2], wagner->color[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	if (wagner_output->wpe_image)
+	{
+		glUseProgram(wagner_output->wpe_view_shader_program);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, wagner_output->wpe_view_texture);
+		glEGLImageTargetTexture2DOESProc imageTargetTexture2DOES = (glEGLImageTargetTexture2DOESProc)eglGetProcAddress("glEGLImageTargetTexture2DOES");
+		assert(imageTargetTexture2DOES > 0);
+		imageTargetTexture2DOES(GL_TEXTURE_2D, wpe_fdo_egl_exported_image_get_egl_image(wagner_output->wpe_image));
+		glUniform1i(wagner_output->wpe_view_u_texture, 0);
+
+		static const GLfloat vertices[4][2] = {
+			{-1.0, -1.0},
+			{1.0, -1.0},
+			{-1.0, 1.0},
+			{1.0, 1.0},
+		};
+
+		static const GLfloat texturePos[4][2] = {
+			{0, 0},
+			{1, 0},
+			{0, 1},
+			{1, 1},
+		};
+
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texturePos);
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+	}
+
 	wlr_renderer_end(renderer);
 
 	wlr_output_commit(wlr_output);
 	wagner->last_frame = now;
 
 	wg_wpe_dispatch_frame_complete(wagner_output);
+
+	wlr_egl_unset_current(egl);
 }
 
 static void output_remove_notify(struct wl_listener *listener, void *data)
@@ -95,6 +136,7 @@ static void new_output_notify(struct wl_listener *listener, void *data)
 
 	struct wlr_egl *egl_renderer = wlr_gles2_renderer_get_egl(wagner->renderer);
 	assert(egl_renderer > 0);
+	wlr_egl_make_current(egl_renderer);
 
 	struct wagner_output *wagner_output = calloc(1, sizeof(struct wagner_output));
 	wagner_output->wpe_view_backend = NULL;
@@ -120,6 +162,7 @@ static void new_output_notify(struct wl_listener *listener, void *data)
 	}
 
 	wlr_output_commit(wagner_output->output);
+	wlr_egl_unset_current(egl_renderer);
 }
 
 static void keyboard_key_notify(struct wl_listener *listener, void *data)

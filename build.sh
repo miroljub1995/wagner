@@ -12,5 +12,5 @@ gcc -Werror \
         src/main.c \
         src/main_loop.c \
         src/wpe_webkit.c \
-		`pkg-config --libs wlroots wayland-client wayland-server xkbcommon glesv2` \
+		`pkg-config --libs wlroots wayland-client wayland-server xkbcommon egl glesv2` \
         ${WPE_WEBKIT_LIBS}
