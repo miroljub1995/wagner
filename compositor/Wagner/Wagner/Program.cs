@@ -1,6 +1,31 @@
-using System.Net.Sockets;
-using System.Text;
 using Wagner;
+using Wagner.Drm;
+using Wagner.Drm.Native;
+using Wagner.Helpers;
+using Wagner.Libc.Native;
+
+int fd;
+
+Span<DrmDevicePtr> devices = Drm.GetDevices2(0);
+using (new SpanElementsDisposer<DrmDevicePtr>(devices))
+{
+    for (int i = 0; i < devices.Length; i++)
+    {
+        if (devices[i].AvailableNodes.HasFlag(DrmAvailableNode.Primary))
+        {
+            string primaryDevice = devices[0].GetNode(DrmNode.Primary);
+            fd = LibcNative.open(primaryDevice, 2);
+            if (fd < 0)
+            {
+                continue;
+            }
+
+            DrmModeResPtr modePtr = DrmNative.drmModeGetResources(fd);
+            Span<int> connectors = modePtr.Connectors;
+        }
+    }
+}
+
 
 var display = new WlGlobalDisplay();
 
