@@ -8,15 +8,39 @@ public struct DrmDevicePtr : IDisposable
 {
     private nint _handle;
 
-    public readonly DrmAvailableNode AvailableNodes => (DrmAvailableNode)Marshal.ReadInt32(_handle, nint.Size);
-    public readonly int BusType => Marshal.ReadInt32(_handle, nint.Size + sizeof(DrmAvailableNode));
+    public readonly DrmAvailableNode AvailableNodes
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmDevice* thisPtr = (NativeStructDrmDevice*)_handle;
+                return (DrmAvailableNode)thisPtr->available_nodes;
+            }
+        }
+    }
+
+    public readonly int BusType
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmDevice* thisPtr = (NativeStructDrmDevice*)_handle;
+                return thisPtr->bustype;
+            }
+        }
+    }
 
     public unsafe string GetNode(DrmNode node)
     {
-        nint nodesPtr = Marshal.ReadIntPtr(_handle);
-        Span<nint> nodes = new Span<nint>((nint*)nodesPtr, 4);
-        nint nodePtr = nodes[(int)node];
-        return Marshal.PtrToStringAnsi(nodePtr)!;
+        unsafe
+        {
+            NativeStructDrmDevice* thisPtr = (NativeStructDrmDevice*)_handle;
+            Span<nint> nodes = new(thisPtr->nodes, 4);
+            nint nodePtr = nodes[(int)node];
+            return Marshal.PtrToStringAnsi(nodePtr)!;
+        }
     }
 
     public void Dispose()
