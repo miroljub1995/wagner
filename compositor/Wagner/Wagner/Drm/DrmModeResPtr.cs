@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Wagner.Drm.Native;
 
 namespace Wagner.Drm;
 
@@ -7,71 +8,52 @@ public struct DrmModeResPtr
 {
     private nint _handle;
 
-    [StructLayout(LayoutKind.Sequential)]
-    private unsafe struct NativeStruct
-    {
-        public int count_fbs;
-        public int* fbs;
-
-        public int count_crtcs;
-        public int* crtcs;
-
-        public int count_connectors;
-        public int* connectors;
-
-        public int count_encoders;
-        public int* encoders;
-
-        public int min_width, max_width;
-        public int min_height, max_height;
-    }
-
     public readonly bool IsNull => _handle == nint.Zero;
 
-    public readonly Span<int> Fbs
+    public readonly Span<uint> Fbs
     {
         get
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
-                return new Span<int>(thisPtr->fbs, thisPtr->count_fbs);
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
+                return new Span<uint>(thisPtr->fbs, thisPtr->count_fbs);
             }
         }
     }
 
-    public readonly Span<int> Crtcs
+    public readonly Span<uint> Crtcs
     {
         get
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
-                return new Span<int>(thisPtr->crtcs, thisPtr->count_crtcs);
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
+                return new Span<uint>(thisPtr->crtcs, thisPtr->count_crtcs);
             }
         }
     }
 
-    public readonly Span<int> Connectors
+    public readonly Span<uint> Connectors
     {
         get
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
-                return new Span<int>(thisPtr->connectors, thisPtr->count_connectors);
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
+                return new Span<uint>(thisPtr->connectors, thisPtr->count_connectors);
             }
         }
     }
 
-    public readonly Span<int> Encoders
+    public readonly Span<uint> Encoders
     {
         get
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
-                return new Span<int>(thisPtr->encoders, thisPtr->count_encoders);
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
+                return new Span<uint>(thisPtr->encoders, thisPtr->count_encoders);
             }
         }
     }
@@ -82,7 +64,7 @@ public struct DrmModeResPtr
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
                 return thisPtr->min_width;
             }
         }
@@ -94,7 +76,7 @@ public struct DrmModeResPtr
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
                 return thisPtr->max_width;
             }
         }
@@ -106,7 +88,7 @@ public struct DrmModeResPtr
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
                 return thisPtr->min_height;
             }
         }
@@ -118,7 +100,7 @@ public struct DrmModeResPtr
         {
             unsafe
             {
-                NativeStruct* thisPtr = (NativeStruct*)_handle;
+                NativeStructDrmModeRes* thisPtr = (NativeStructDrmModeRes*)_handle;
                 return thisPtr->max_height;
             }
         }

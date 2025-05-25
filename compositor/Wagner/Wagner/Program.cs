@@ -21,7 +21,11 @@ using (new SpanElementsDisposer<DrmDevicePtr>(devices))
             }
 
             DrmModeResPtr modePtr = DrmNative.drmModeGetResources(fd);
-            Span<int> connectors = modePtr.Connectors;
+            Span<uint> connectors = modePtr.Connectors;
+            foreach (uint connectorId in connectors)
+            {
+                var connector = DrmModeConnector.Get(fd, connectorId);
+            }
         }
     }
 }

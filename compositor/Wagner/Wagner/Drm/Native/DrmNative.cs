@@ -14,4 +14,10 @@ public partial class DrmNative
 
     [LibraryImport(LIBRARY_NAME)]
     public static partial DrmModeResPtr drmModeGetResources(int fd);
+
+    [LibraryImport(LIBRARY_NAME)]
+    public static partial DrmModeConnector drmModeGetConnector(int fd, uint connectorId);
+
+    [LibraryImport(LIBRARY_NAME)]
+    public static partial void drmModeFreeConnector(DrmModeConnector ptr);
 }
