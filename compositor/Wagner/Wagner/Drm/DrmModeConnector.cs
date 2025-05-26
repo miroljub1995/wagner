@@ -35,4 +35,100 @@ public class DrmModeConnector : SafeHandleZeroOrMinusOneIsInvalid
             }
         }
     }
+
+    public uint EncoderId
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->encoder_id;
+            }
+        }
+    }
+
+    public uint ConnectorType
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->connector_type;
+            }
+        }
+    }
+
+    public uint ConnectorTypeId
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->connector_type_id;
+            }
+        }
+    }
+
+    public DrmModeConnection Connection
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->connection;
+            }
+        }
+    }
+
+    public uint MmWidth
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->mmWidth;
+            }
+        }
+    }
+
+    public uint MmHeight
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->mmHeight;
+            }
+        }
+    }
+
+    public DrmModeSubPixel SubPixel
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return thisPtr->subpixel;
+            }
+        }
+    }
+
+    public Span<ValueDrmModeInfo> Modes
+    {
+        get
+        {
+            unsafe
+            {
+                NativeStructDrmModeConnector* thisPtr = (NativeStructDrmModeConnector*)handle;
+                return new(thisPtr->modes, thisPtr->count_modes);
+            }
+        }
+    }
 }

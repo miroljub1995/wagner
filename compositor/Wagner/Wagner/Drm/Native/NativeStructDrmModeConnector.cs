@@ -8,6 +8,7 @@ public unsafe struct NativeStructDrmModeConnector
     public uint connector_id;
     public uint encoder_id;
     public uint connector_type;
+    public uint connector_type_id;
     public DrmModeConnection connection;
     public uint mmWidth, mmHeight;
     public DrmModeSubPixel subpixel;

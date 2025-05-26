@@ -24,7 +24,10 @@ using (new SpanElementsDisposer<DrmDevicePtr>(devices))
             Span<uint> connectors = modePtr.Connectors;
             foreach (uint connectorId in connectors)
             {
-                var connector = DrmModeConnector.Get(fd, connectorId);
+                DrmModeConnector connector = DrmModeConnector.Get(fd, connectorId);
+                if (connector.Connection == DrmModeConnection.CONNECTED)
+                {
+                }
             }
         }
     }
